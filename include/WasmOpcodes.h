@@ -1,4 +1,4 @@
-//All webassembly opcodes, given by the spec.
+// All webassembly opcodes, given by the spec.
 #ifndef __WASM_OPCODES_H
 #define __WASM_OPCODES_H
 #define OP_UNREACHABLE 0x00

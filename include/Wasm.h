@@ -1,8 +1,8 @@
-#include <stdint.h>
-#include <wchar.h>
-#include <limits.h>
 #include "InputStream.h"
 #include "WasmStructs.h"
+#include <limits.h>
+#include <stdint.h>
+#include <wchar.h>
 #ifndef _WASM_H
 #define _WASM_H
 #define CUSTOM_SECTION 0
@@ -21,13 +21,13 @@
 #define TABLE_ELEMTYPE 0x70
 #define FUNC_ID 0x60
 #define LIMIT_MAX UINT_MAX
-//Public API
+// Public API
 WasmModule readModule(InputStream in);
 WasmUninterpretedModule readUninterpreted(InputStream in);
 void deleteModule(WasmModule module);
 void deleteUninterpretedModule(WasmUninterpretedModule wm);
-CustomSection findCustomSection(WasmUninterpretedModule wm,char* name);
-CustomSection findCustomSectionW(WasmUninterpretedModule wm,wchar_t* name);
+CustomSection findCustomSection(WasmUninterpretedModule wm, char *name);
+CustomSection findCustomSectionW(WasmUninterpretedModule wm, wchar_t *name);
 TypeSection findTypeSection(WasmUninterpretedModule wm);
 ImportSection findImportSection(WasmUninterpretedModule wm);
 FunctionSection findFunctionSection(WasmUninterpretedModule wm);
@@ -35,13 +35,13 @@ TableSection findTableSection(WasmUninterpretedModule wm);
 MemorySection findMemorySection(WasmUninterpretedModule wm);
 GlobalSection findGlobalSection(WasmUninterpretedModule wm);
 ExportSection findExportSection(WasmUninterpretedModule wm);
-StartSection findStarSection(WasmUninterpretedModule wm);
+StartSection findStartSection(WasmUninterpretedModule wm);
 ElementSection findElementSection(WasmUninterpretedModule wm);
 CodeSection findCodeSection(WasmUninterpretedModule wm);
 DataSection findDataSection(WasmUninterpretedModule wm);
 DataCountSection findDataCountSection(WasmUninterpretedModule wm);
-//Private API
-CustomSection readCustomSection(InputStream in,uint32_t sectionLength);
+// Private API
+CustomSection readCustomSection(InputStream in, uint32_t sectionLength);
 TypeSection readTypeSection(InputStream in);
 ImportSection readImportSection(InputStream in);
 FunctionSection readFunctionSection(InputStream in);
@@ -67,7 +67,7 @@ ImportDescriptor readImportDescriptor(InputStream in);
 Limit readLimit(InputStream in);
 GlobalType readGlobalType(InputStream in);
 ExportDescriptor readExportDescriptor(InputStream in);
-Function readFunction(InputStream in,uint32_t size);
+Function readFunction(InputStream in, uint32_t size);
 void freeGlobaltype(GlobalType tt);
 void freeMemory(MemType tt);
 void freeTable(TableType tt);
@@ -94,5 +94,5 @@ void freeCode(Code c);
 void freeFunction(Function f);
 void freeDataSection(DataSection ds);
 void freeData(Data d);
-void deleteWasmSection(uint8_t id,WasmSection ws);
+void deleteWasmSection(uint8_t id, WasmSection ws);
 #endif
