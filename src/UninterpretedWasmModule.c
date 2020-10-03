@@ -75,7 +75,7 @@ ExportSection findExportSection(WasmUninterpretedModule wm){
 	}
 	return NULL;
 }
-StartSection findStarSection(WasmUninterpretedModule wm){
+StartSection findStartSection(WasmUninterpretedModule wm){
 	for(uint32_t i=0;i<wm->count;i++){
 		Section s=wm->sections[i];
 		if(s->id==START_SECTION)
