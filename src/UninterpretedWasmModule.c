@@ -1,6 +1,12 @@
-#include "Wasm.h"
-#include "wchar.h"
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+#include "Wasm.h"
+#include "WasmStructs.h"
+
 CustomSection findCustomSection(WasmUninterpretedModule wm, char *name) {
 	wchar_t *tmp = calloc(strlen(name) * 4, sizeof(wchar_t));
 	mbstowcs(tmp, name, strlen(name));

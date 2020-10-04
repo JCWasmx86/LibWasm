@@ -1,6 +1,7 @@
 CLANG=clang
 CC=clang
-WASMFLAGS=--target=wasm32 -nostdlib -c
+CFLAGS+=-fPIE
+WASMFLAGS+=--target=wasm32 -nostdlib -c
 all:
 	mkdir -p bin/obj
 	$(CC) $(CFLAGS) -I"include" -O3 -Wall -Wextra -pedantic -c -o bin/obj/InputStream.o src/InputStream.c
@@ -32,3 +33,5 @@ compileTestCases:
 	$(CLANG) $(WASMFLAGS) -O3 -o bin/test3.wasm test/testcases/test3.c
 clean:
 	rm -rf bin
+format:
+	find src include test -iname *.h -o -iname *.c | xargs clang-format --style=file -verbose -i

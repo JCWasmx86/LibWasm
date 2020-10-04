@@ -1,12 +1,10 @@
+#include "InputStream.h"
 #include <assert.h>
 #include <locale.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <wchar.h>
-
-#include "InputStream.h"
 
 uint32_t readUleb(InputStream in) {
 	uint32_t result = 0;
@@ -94,21 +92,28 @@ int readOneByte(InputStream in, uint8_t *into) {
 	in->pos++;
 	return fread(into, 1, 1, in->file);
 }
-InputStream open(const char *name) {
+InputStream openInputStream(const char *name) {
 	InputStream ret = malloc(sizeof(struct _inputStream));
+	if (ret == NULL) {
+		return NULL;
+	}
 	ret->file = fopen(name, "rb");
+	if (ret->file == NULL) {
+		free(ret);
+		return NULL;
+	}
 	ret->pos = 0;
 	return ret;
 }
-InputStream openW(const wchar_t *name) {
+InputStream openInputStreamW(const wchar_t *name) {
 	setlocale(LC_ALL, "");
 	char *tmp = calloc(wcslen(name) + 1, 1);
 	wcstombs(tmp, name, wcslen(name));
-	InputStream ret = open(tmp);
+	InputStream ret = openInputStream(tmp);
 	free(tmp);
 	return ret;
 }
-void close(InputStream in) {
+void closeInputStream(InputStream in) {
 	if (in->file != NULL)
 		fclose(in->file);
 	free(in);

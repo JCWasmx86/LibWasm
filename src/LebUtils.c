@@ -1,4 +1,6 @@
 #include "LebUtils.h"
+#include <stdint.h>
+
 // TODO: Maybe there is a better O(1)-way to get the length in
 // bytes
 uint8_t numBytesForU64(uint64_t v) {

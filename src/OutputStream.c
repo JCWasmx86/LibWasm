@@ -1,7 +1,9 @@
 #include "OutputStream.h"
 #include <locale.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 void writeUleb(OutputStream out, uint32_t v) {
 	do {
 		uint8_t b = v & 0x7f;

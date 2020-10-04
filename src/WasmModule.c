@@ -1,9 +1,13 @@
 #include "InputStream.h"
 #include "Wasm.h"
+#include "WasmStructs.h"
 #include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 WasmModule readModule(InputStream in) {
 	if (in == NULL)
 		return NULL;
