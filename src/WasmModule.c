@@ -559,20 +559,34 @@ MemType readMemory(InputStream in) {
 	ret->limit = readLimit(in);
 	return ret;
 }
+uint64_t decodeULEB128(const uint8_t *p);
 Global readGlobal(InputStream in) {
 	Global ret = calloc(1, sizeof(struct _global));
 	uint8_t *initExpr = malloc(32);
 	uint32_t initExprLength = 0;
+	ret->type = readGlobalType(in);
 	while (1) {
+		if (initExprLength >= 1 && initExpr[initExprLength - 1] == 0x0b)
+			break;
 		readOneByte(in, &initExpr[initExprLength]);
 		initExprLength++;
-		if (initExpr[initExprLength - 1] == 0x0b)
-			break;
 	}
 	ret->initExpr = initExpr;
 	ret->initExprLength = initExprLength;
-	ret->type = readGlobalType(in);
 	return ret;
+}
+uint64_t decodeULEB128(const uint8_t *p) {
+	uint64_t value = 0;
+	uint32_t shift = 0;
+	do {
+		uint64_t slice = *p & 0x7f;
+		if (shift >= 64 || slice << shift >> shift != slice) {
+			return 0;
+		}
+		value += ((uint64_t)(*p & 0x7f)) << shift;
+		shift += 7;
+	} while (*p++ >= 128);
+	return value;
 }
 Export readExport(InputStream in) {
 	Export ret = calloc(1, sizeof(struct _export));
