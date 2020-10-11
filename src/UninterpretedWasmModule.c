@@ -8,7 +8,7 @@
 #include "WasmStructs.h"
 
 CustomSection findCustomSection(WasmUninterpretedModule wm, char *name) {
-	wchar_t *tmp = calloc(strlen(name) * 4, sizeof(wchar_t));
+	wchar_t *tmp = calloc(strlen(name) + 1, sizeof(wchar_t));
 	mbstowcs(tmp, name, strlen(name));
 	CustomSection cs = findCustomSectionW(wm, tmp);
 	free(tmp);

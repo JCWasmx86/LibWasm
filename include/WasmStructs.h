@@ -2,8 +2,10 @@
 #include <wchar.h>
 #ifndef _WASMSTRUCTS_H
 #define _WASMSTRUCTS_H
-// All types
+
 #define PACKED __attribute__((__packed__))
+// All types
+// A valtype.
 typedef enum PACKED _val {
 	I32 = 0x7F,
 	I64 = 0x7E,
@@ -28,15 +30,16 @@ typedef enum PACKED _exportType {
 } ExportType;
 // Has this limit bounds?
 typedef enum PACKED _limitBounds {
-	LOWER = 0x00,
-	LOWER_UPPER = 0x01
+	LOWER = 0x00,	   // Just the lower bounds is given
+	LOWER_UPPER = 0x01 // Lower and upper bounds are given
 } LimitBound;
 // Limit used by MemType and Table
 typedef struct _limit {
-	uint8_t type;
-	uint32_t min;
-	uint32_t max;
+	LimitBound type; // Describes the type of the limit
+	uint32_t min;	 // Minimum value
+	uint32_t max;	 // Maximum value
 } * Limit;
+// Associates a name with an index. Used in the name section
 typedef struct _nameAssoc {
 	uint32_t idx;
 	wchar_t *name;
@@ -46,79 +49,94 @@ typedef struct _indirectNameAssoc {
 	NameAssoc *names;
 	uint32_t numNames;
 } * IndirectNameAssoc;
+// Describes a memtype from the memory section
 typedef struct _memType {
 	Limit limit;
 } * MemType;
+// Describes a global type from the global section
 typedef struct _globalType {
-	Valtype type;
-	Mutability mut;
+	Valtype type;	// What type does this global have?
+	Mutability mut; // Is it mutable?
 } * GlobalType;
+// A global.
 typedef struct _global {
-	GlobalType type;
-	uint8_t *initExpr;
-	uint32_t initExprLength;
+	GlobalType type; // Describes the global
+	uint8_t
+		*initExpr; // The bytes of the initexpr (<type>.const <someValue> end)
+	uint32_t initExprLength; // Length of the initexpression
 } * Global;
+// Describes a tabletype from the table section
 typedef struct _tableType {
 	Limit limit;
 } * TableType;
+// Further specifies an import,
 typedef struct _importDescriptor {
-	ImportType type;
-	uint32_t typeidx;
-	TableType table;
-	MemType memory;
-	GlobalType global;
+	ImportType type;   // What is imported?
+	uint32_t typeidx;  // Set if IMPORT_TYPE is specified
+	TableType table;   // Set if IMPORT_TABLE is specified
+	MemType memory;	   // Set if IMPORT_MEMORY is specified
+	GlobalType global; // Set if IMPORT_GLOBALTYPE is specified
 } * ImportDescriptor;
+// Describes an import.
 typedef struct _import {
-	wchar_t *module;
-	wchar_t *name;
+	wchar_t *module; // Name of the module
+	wchar_t *name;	 // Name of the imported symbol
 	ImportDescriptor descriptor;
 } * Import;
+// Further specifies an export
 typedef struct _exportDescriptor {
-	ExportType type;
-	uint32_t index;
+	ExportType type; // What is exported?
+	uint32_t index;	 // Index of the exported symbol
 } * ExportDescriptor;
+// Describes an export
 typedef struct _export {
-	wchar_t *name;
+	wchar_t *name; // Name of the exported symbol
 	ExportDescriptor descriptor;
 } * Export;
+// Is an element from the element section
 typedef struct _element {
-	uint32_t tableidx;
-	uint8_t *initExpr;
-	uint32_t initExprLength;
-	uint32_t *functionIndices;
-	uint32_t size;
+	uint32_t tableidx;		   // For which table is this Element?
+	uint8_t *initExpr;		   // Initexpression, gives the offset
+	uint32_t initExprLength;   // Number of bytes in initExpr
+	uint32_t *functionIndices; // Function indices
+	uint32_t size;			   // Number of function indices
 } * Element;
+// A local variable, given in the code section
 typedef struct _local {
-	Valtype valtype;
-	uint32_t count;
+	Valtype valtype; // Of what type is this local?
+	uint32_t count;	 // How many?
 } * Local;
+// Describes a webassembly function.
 typedef struct _function {
-	Local *locals;
-	uint32_t localsSize;
-	uint8_t *code;
-	uint32_t codeSize;
+	Local *locals;		 // The locals
+	uint32_t localsSize; // Number of Local-structs
+	uint8_t *code;		 // The code in bytes
+	uint32_t codeSize;	 // The number of bytes in code.
 } * Function;
+// Specifies a code element from the code section.
 typedef struct _code {
-	uint32_t size;
+	uint32_t size; // Size of func
 	Function func;
 } * Code;
+// Data element
 typedef struct _data {
-	uint32_t memidx;
-	uint8_t *offsetCode;
-	uint32_t offsetCodeLength;
-	uint8_t *init;
-	uint32_t initLength;
+	uint32_t memidx;		   // Which memtype is specified
+	uint8_t *offsetCode;	   // Specifies the offset
+	uint32_t offsetCodeLength; // Length of the offsetCode
+	uint8_t *init;			   // Bytes for initializing the memory
+	uint32_t initLength;	   // Number of bytes
 } * Data;
+// Functype that gives the signature of a function
 typedef struct _funcType {
-	Valtype *args;
-	uint32_t numArgs;
-	Valtype *returns;
-	uint32_t numReturns;
+	Valtype *args;		 // The types of the arguments
+	uint32_t numArgs;	 // Number of arguments
+	Valtype *returns;	 // Types of return value(s)
+	uint32_t numReturns; // Number of return values.
 } * FuncType;
 typedef struct _customS {
-	wchar_t *name;
-	uint8_t *data;
-	uint32_t size;
+	wchar_t *name; // Name of the section
+	uint8_t *data; // The bytes of the data
+	uint32_t size; // Size of data
 } * CustomSection;
 typedef struct _typeS {
 	FuncType *types;
@@ -173,6 +191,7 @@ typedef struct _wasmFunc {
 	uint8_t *code;
 	uint32_t codeSize;
 } * WasmFunction;
+// Describes a Webassembly-module.
 typedef struct _wasmModule {
 	CustomSection *customSections;
 	uint32_t numberOfCustomSections;
@@ -204,10 +223,14 @@ typedef union _wasmSection {
 	CodeSection codeSection;
 	DataSection dataSection;
 } * WasmSection;
+// An uninterpreted webassembly section
+// id is one of the *_SECTION preprocessor defines
 typedef struct _section {
 	uint8_t id;
 	WasmSection section;
 } * Section;
+// Describes an uninterpreted webassembly module, that preserves the order of
+// the sections
 typedef struct _uninterpretedModule {
 	Section *sections;
 	uint32_t count;

@@ -22,24 +22,46 @@
 #define FUNC_ID 0x60
 #define LIMIT_MAX UINT_MAX
 // Public API
+// Read a Webassembly module and interpret it.
+// If a section is not there, it is NULL.
 WasmModule readModule(InputStream in);
+// Read a module and just preserve the order of the sections
 WasmUninterpretedModule readUninterpreted(InputStream in);
+// Release WasmModule
 void deleteModule(WasmModule module);
+// Delete an uninterpreted Webassembly-module
 void deleteUninterpretedModule(WasmUninterpretedModule wm);
+// Searches for a custom section with the name "name" in the module. (Returns
+// NULL if it is not found)
 CustomSection findCustomSection(WasmUninterpretedModule wm, char *name);
+// Searches for a custom section with the name "name" in the module. (Returns
+// NULL if it is not found)
 CustomSection findCustomSectionW(WasmUninterpretedModule wm, wchar_t *name);
+// Returns NULL or a reference to the typesection of this module
 TypeSection findTypeSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the importsection of this module
 ImportSection findImportSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the functionsection of this module
 FunctionSection findFunctionSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the tablesection of this module
 TableSection findTableSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the memorysection of this module
 MemorySection findMemorySection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the globalsection of this module
 GlobalSection findGlobalSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the exportsection of this module
 ExportSection findExportSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the startsection of this module
 StartSection findStartSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the elementsection of this module
 ElementSection findElementSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the codesection of this module
 CodeSection findCodeSection(WasmUninterpretedModule wm);
+// Returns NULL or a reference to the datasection of this module
 DataSection findDataSection(WasmUninterpretedModule wm);
+////Returns NULL or a reference to the datacountsection of this module
 DataCountSection findDataCountSection(WasmUninterpretedModule wm);
+
 // Private API
 CustomSection readCustomSection(InputStream in, uint32_t sectionLength);
 TypeSection readTypeSection(InputStream in);
@@ -94,5 +116,6 @@ void freeCode(Code c);
 void freeFunction(Function f);
 void freeDataSection(DataSection ds);
 void freeData(Data d);
+void freeDataCountSection(DataCountSection dcs);
 void deleteWasmSection(uint8_t id, WasmSection ws);
 #endif

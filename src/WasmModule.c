@@ -7,7 +7,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define EMERGENCY(x)                           \
+	do {                                       \
+		if (!x) {                              \
+			emergencyFree(cnt, sections, ret); \
+			return NULL;                       \
+		}                                      \
+	} while (0);
+static void emergencyFree(int numberOfCustomSections,
+						  CustomSection *customSections, WasmModule module);
+static void emergencyFree(int numberOfCustomSections,
+						  CustomSection *customSections, WasmModule module) {
+	if (module->typeSection)
+		freeTypeSection(module->typeSection);
+	if (module->importSection)
+		freeImportSection(module->importSection);
+	if (module->functionSection)
+		freeFunctionSection(module->functionSection);
+	if (module->tableSection)
+		freeTableSection(module->tableSection);
+	if (module->memorySection)
+		freeMemorySection(module->memorySection);
+	if (module->globalSection)
+		freeGlobalSection(module->globalSection);
+	if (module->exportSection)
+		freeExportSection(module->exportSection);
+	if (module->startSection)
+		freeStartSection(module->startSection);
+	if (module->elementSection)
+		freeElementSection(module->elementSection);
+	if (module->dataCountSection)
+		freeDataCountSection(module->dataCountSection);
+	if (module->codeSection)
+		freeCodeSection(module->codeSection);
+	if (module->dataSection)
+		freeDataSection(module->dataSection);
+	for (int i = 0; i < numberOfCustomSections; i++) {
+		freeCustomSection(customSections[i]);
+	}
+	free(customSections);
+	free(module);
+}
 WasmModule readModule(InputStream in) {
 	if (in == NULL)
 		return NULL;
@@ -19,9 +59,16 @@ WasmModule readModule(InputStream in) {
 	uint8_t *version = readNBytes(in, 4);
 	free(version);
 	CustomSection *sections = malloc(8 * sizeof(struct _customS));
+	if (!sections) {
+		return NULL;
+	}
 	int cnt = 0;
 	int max = 8;
 	WasmModule ret = calloc(1, sizeof(struct _wasmModule));
+	if (!ret) {
+		free(sections);
+		return NULL;
+	}
 	while (1) {
 		uint8_t byte = 0;
 		int byteCnt = readOneByte(in, &byte);
@@ -33,9 +80,14 @@ WasmModule readModule(InputStream in) {
 		switch (byte) {
 			case CUSTOM_SECTION: {
 				CustomSection cs = readCustomSection(in, sectionLength);
+				EMERGENCY(cs);
 				if (cnt == max) {
 					CustomSection *tmp =
-						calloc(1, max * 2 * sizeof(struct _customS));
+						calloc(max * 2, sizeof(struct _customS));
+					if (tmp == NULL) {
+						emergencyFree(cnt, sections, ret);
+						return NULL;
+					}
 					memcpy(tmp, sections, max);
 					max *= 2;
 					free(sections);
@@ -46,65 +98,78 @@ WasmModule readModule(InputStream in) {
 			}
 			case TYPE_SECTION: {
 				TypeSection ts = readTypeSection(in);
+				EMERGENCY(ts);
 				ret->typeSection = ts;
 				break;
 			}
 			case IMPORT_SECTION: {
 				ImportSection is = readImportSection(in);
+				EMERGENCY(is);
 				ret->importSection = is;
 				break;
 			}
 			case FUNCTION_SECTION: {
 				FunctionSection fs = readFunctionSection(in);
+				EMERGENCY(fs);
 				ret->functionSection = fs;
 				break;
 			}
 			case TABLE_SECTION: {
 				TableSection ts1 = readTableSection(in);
+				EMERGENCY(ts1);
 				ret->tableSection = ts1;
 				break;
 			}
 			case MEMORY_SECTION: {
 				MemorySection ms = readMemorySection(in);
+				EMERGENCY(ms);
 				ret->memorySection = ms;
 				break;
 			}
 			case GLOBAL_SECTION: {
 				GlobalSection gs = readGlobalSection(in);
+				EMERGENCY(gs);
 				ret->globalSection = gs;
 				break;
 			}
 			case EXPORT_SECTION: {
 				ExportSection es = readExportSection(in);
+				EMERGENCY(es);
 				ret->exportSection = es;
 				break;
 			}
 			case START_SECTION: {
 				StartSection ss = readStartSection(in);
+				EMERGENCY(ss);
 				ret->startSection = ss;
 				break;
 			}
 			case ELEMENT_SECTION: {
 				ElementSection es1 = readElementSection(in);
+				EMERGENCY(es1);
 				ret->elementSection = es1;
 				break;
 			}
 			case DATACOUNT_SECTION: {
 				DataCountSection ds1 = readDataCountSection(in);
+				EMERGENCY(ds1);
 				ret->dataCountSection = ds1;
 				break;
 			}
 			case CODE_SECTION: {
 				CodeSection cs1 = readCodeSection(in);
+				EMERGENCY(cs1);
 				ret->codeSection = cs1;
 				break;
 			}
 			case DATA_SECTION: {
 				DataSection ds = readDataSection(in);
+				EMERGENCY(ds);
 				ret->dataSection = ds;
 				break;
 			}
 			default: {
+				emergencyFree(cnt, sections, ret);
 				return NULL;
 			}
 		}
@@ -112,6 +177,9 @@ WasmModule readModule(InputStream in) {
 		assert(end - start == sectionLength);
 	}
 	CustomSection *truncatedSections = malloc(cnt * sizeof(struct _customS));
+	if (!truncatedSections) {
+		emergencyFree(cnt, sections, ret);
+	}
 	memcpy(truncatedSections, sections, cnt * sizeof(struct _customS));
 	ret->customSections = truncatedSections;
 	ret->numberOfCustomSections = cnt;
@@ -256,6 +324,7 @@ void freeData(Data d) {
 	free(d->init);
 	free(d);
 }
+void freeDataCountSection(DataCountSection dcs) { free(dcs); }
 void deleteWasmSection(uint8_t id, WasmSection ws) {
 	switch (id) {
 		case CUSTOM_SECTION:
@@ -293,6 +362,9 @@ void deleteWasmSection(uint8_t id, WasmSection ws) {
 			break;
 		case DATA_SECTION:
 			freeDataSection(ws->dataSection);
+			break;
+		case DATACOUNT_SECTION:
+			freeDataCountSection(ws->dataCountSection);
 			break;
 	}
 	free(ws);

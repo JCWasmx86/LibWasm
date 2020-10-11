@@ -79,7 +79,8 @@ double readDoubleIEEE754(InputStream in) {
 const wchar_t *readName(InputStream in) {
 	uint32_t length = readUleb(in);
 	wchar_t *ret = calloc((length + 1), sizeof(wchar_t));
-	assert(ret != NULL);
+	if (ret == NULL)
+		return NULL;
 	for (uint32_t i = 0; i < length; i++) {
 		uint8_t tmp = 0;
 		fread(&tmp, 1, 1, in->file);
@@ -120,7 +121,9 @@ void closeInputStream(InputStream in) {
 }
 uint8_t *readNBytes(InputStream in, uint32_t howMany) {
 	uint8_t *ret = calloc(1, howMany);
-	assert(ret != NULL);
+	if (ret == NULL) {
+		return ret;
+	}
 	fread(ret, 1, howMany, in->file);
 	in->pos += howMany;
 	return ret;
